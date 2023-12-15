@@ -1,12 +1,12 @@
 import os
 import re
 
-DATASETS_ROOT = '/content/datasets'
-TRANSCRIPT_PATH = os.path.join(DATASETS_ROOT, 'transcript.txt')
+DATASETS_ROOT = "/content/datasets"
+TRANSCRIPT_PATH = os.path.join(DATASETS_ROOT, "transcript.txt")
 # VCTK
-VCTK_ROOT = os.path.join(DATASETS_ROOT, 'VCTK-Corpus')
-VCTK_WAVS = os.path.join(VCTK_ROOT, 'wav48')
-VCTK_TXT = os.path.join(VCTK_ROOT, 'txt')
+VCTK_ROOT = os.path.join(DATASETS_ROOT, "VCTK-Corpus")
+VCTK_WAVS = os.path.join(VCTK_ROOT, "wav48")
+VCTK_TXT = os.path.join(VCTK_ROOT, "txt")
 
 # BAKER
 BAKER_ROOT = os.path.join(DATASETS_ROOT, "BZNSYP")
@@ -30,7 +30,9 @@ def flush_vctk(tf):
             txt_root_path = os.path.join(VCTK_TXT, spk_dir)
             for txt_root, _, txt_files in os.walk(txt_root_path):
                 for txt_file in txt_files:
-                    with open(os.path.join(txt_root, txt_file), mode="r", encoding="utf-8") as f:
+                    with open(
+                        os.path.join(txt_root, txt_file), mode="r", encoding="utf-8"
+                    ) as f:
                         txt = f.read().strip()
                     wav_file = txt_file.replace(".txt", ".wav")
                     speaker = spk_dir
@@ -77,5 +79,5 @@ def main():
         flush_aishell(f)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
