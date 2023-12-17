@@ -1,6 +1,7 @@
 import os
 import argparse
 import librosa
+import glob
 from multiprocessing import Pool, cpu_count
 
 import soundfile
@@ -9,12 +10,10 @@ from tqdm import tqdm
 from config import config
 
 
-def process(item):
-    spkdir, wav_name, args = item
-    wav_path = os.path.join(args.in_dir, spkdir, wav_name)
-    if os.path.exists(wav_path) and wav_path.lower().endswith(".wav"):
-        wav, sr = librosa.load(wav_path, sr=args.sr)
-        soundfile.write(os.path.join(args.out_dir, spkdir, wav_name), wav, sr)
+def process(file_path, args):
+    if os.path.exists(file_path) and file_path.lower().endswith(".wav"):
+        wav, sr = librosa.load(file_path, sr=args.sr)
+        soundfile.write(file_path, wav, sr)  # 写回原始位置
 
 
 if __name__ == "__main__":
@@ -32,41 +31,25 @@ if __name__ == "__main__":
         help="path to source dir",
     )
     parser.add_argument(
-        "--out_dir",
-        type=str,
-        default=config.resample_config.out_dir,
-        help="path to target dir",
-    )
-    parser.add_argument(
         "--processes",
         type=int,
         default=0,
         help="cpu_processes",
     )
     args, _ = parser.parse_known_args()
-    # autodl 无卡模式会识别出46个cpu
+
     if args.processes == 0:
         processes = cpu_count() - 2 if cpu_count() > 4 else 1
     else:
         processes = args.processes
     pool = Pool(processes=processes)
 
-    tasks = []
+    # 使用glob查找所有.wav文件
+    wav_files = glob.glob(os.path.join(args.in_dir, '**', '*.wav'), recursive=True)
 
-    for dirpath, _, filenames in os.walk(args.in_dir):
-        # 子级目录
-        spk_dir = os.path.relpath(dirpath, args.in_dir)
-        spk_dir_out = os.path.join(args.out_dir, spk_dir)
-        if not os.path.isdir(spk_dir_out):
-            os.makedirs(spk_dir_out, exist_ok=True)
-        for filename in filenames:
-            if filename.lower().endswith(".wav"):
-                twople = (spk_dir, filename, args)
-                tasks.append(twople)
+    tasks = [(file_path, args) for file_path in wav_files]
 
-    for _ in tqdm(
-        pool.imap_unordered(process, tasks),
-    ):
+    for _ in tqdm(pool.imap_unordered(process, tasks), total=len(tasks)):
         pass
 
     pool.close()
