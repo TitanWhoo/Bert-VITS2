@@ -10,10 +10,11 @@ from tqdm import tqdm
 from config import config
 
 
-def process(file_path, args):
+def process(item):
+    file_path, args = item  # Unpack the tuple
     if os.path.exists(file_path) and file_path.lower().endswith(".wav"):
         wav, sr = librosa.load(file_path, sr=args.sr)
-        soundfile.write(file_path, wav, sr)  # 写回原始位置
+        soundfile.write(file_path, wav, sr)  # Write back to the original location
 
 
 if __name__ == "__main__":
@@ -44,7 +45,7 @@ if __name__ == "__main__":
         processes = args.processes
     pool = Pool(processes=processes)
 
-    # 使用glob查找所有.wav文件
+    # Use glob to find all .wav files
     wav_files = glob.glob(os.path.join(args.in_dir, '**', '*.wav'), recursive=True)
 
     tasks = [(file_path, args) for file_path in wav_files]
